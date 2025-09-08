@@ -9,14 +9,31 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Benchmark)
-@Fork(value = 1, warmups = 2)
-@Warmup(iterations = 2)
+@Fork(1)
+@Warmup(iterations = 1)
+@Measurement(iterations = 1, time = 200, timeUnit = TimeUnit.MILLISECONDS)
 public class SampleBenchmark {
+  @Param({"5", "10", "15", "20", "25", "30"})
+  public int n;
+
+  Hofstadter hofstadter;
+
+  @Setup(Level.Iteration)
+  public void setup() {
+    hofstadter = new Hofstadter();
+  }
+
   @Benchmark
   @Timeout(time = 5, timeUnit = TimeUnit.SECONDS)
-  public void sayHelloBenchmark(Blackhole bh) {
-      Hofstadter hofstadter = new Hofstadter();
-      Integer output = hofstadter.naiveGSequence(1);
+  public void naiveG(Blackhole bh) {
+      Integer output = hofstadter.naiveGSequence(n);
       bh.consume(output);
+  }
+
+  @Benchmark
+  @Timeout(time=5, timeUnit = TimeUnit.SECONDS)
+  public void memoizedG(Blackhole bh) {
+    Integer output = hofstadter.memoizedGSequence(n);
+    bh.consume(output);
   }
 }
